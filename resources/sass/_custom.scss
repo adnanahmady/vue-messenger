@@ -1,0 +1,24 @@
+.cursor-pointer {
+    cursor: pointer;
+}
+[v-cloak] {
+    display: none;
+}
+
+.bg-info-light {
+    background-color: #aee4ff !important;
+    background-color: rgb(173, 228, 255) !important;
+    background-color: hsl(200, 100%, 84%) !important;
+}
+
+.scrollable {
+    overflow: auto;
+}
+
+.page-fit {
+    height: calc(100vh - 150px);
+}
+
+.space-pre-line {
+    white-space: pre-line;
+}
