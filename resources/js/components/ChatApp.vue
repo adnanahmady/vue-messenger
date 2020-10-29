@@ -107,9 +107,12 @@
                     if (c.id !== contact.id) {
                         return c;
                     }
-                    markAsRead ?
-                        c.sends[0][this.unread] = 0 :
-                        c.sends[0][this.unread] += 1;
+
+                    if (c.sends.length) {
+                        markAsRead ?
+                            c.sends[0][this.unread] = 0 :
+                            c.sends[0][this.unread] += 1;
+                    }
 
                     return c;
                 });

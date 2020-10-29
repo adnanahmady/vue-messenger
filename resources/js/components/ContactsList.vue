@@ -94,7 +94,7 @@
                             return Infinity;
                         }
 
-                        return contact.sends.length && [...contact.sends].shift()[this.unread]
+                        return contact.sends.length && [...contact.sends].shift()[this.unread];
                     }]).reverse();
             }
         }
