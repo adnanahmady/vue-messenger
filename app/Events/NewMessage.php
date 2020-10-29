@@ -14,7 +14,9 @@ use Illuminate\Queue\SerializesModels;
 
 class NewMessage implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * @var Message
@@ -42,6 +44,6 @@ class NewMessage implements ShouldBroadcastNow
      */
     public function broadcastOn()
     {
-        return new PrivateChannel("contacts.{$this->message->to}");
+        return new PrivateChannel("contacts.{$this->message->{Message::TO}}");
     }
 }

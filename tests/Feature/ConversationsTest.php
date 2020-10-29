@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Requests\CreateConversationRequest;
 use App\Message;
 use App\User;
 use Illuminate\Auth\AuthenticationException;
@@ -19,11 +20,12 @@ class ConversationsTest extends TestCase
         $this->withoutExceptionHandling();
         $this->be(factory(User::class)->create());
         factory(User::class)->create();
-        $send = factory(Message::class, 5)->create(['from' => auth()->id()]);
-        $receive = factory(Message::class, 5)->create(['to' => auth()->id()]);
+        $send = factory(Message::class, $amount = 5)->create([Message::FROM => auth()->id()]);
+        $receive = factory(Message::class, $amount)->create([Message::TO => auth()->id()]);
 
-        $response = $this->get(route('conversations', ['contact' => auth()->user()]))
-            ->assertStatus(200);
+        $response = $this->get(route('conversations', [
+            CreateConversationRequest::CONTACT => auth()->user()
+        ]))->assertStatus(200);
 
         $this->assertIsArray($response->json());
     }
@@ -35,7 +37,9 @@ class ConversationsTest extends TestCase
         $this->expectException(AuthenticationException::class);
         $contact = factory(User::class)->create();
 
-        $this->get(route('conversations', ['contact' => $contact]))->assertStatus(200);
+        $this->get(route('conversations', [
+            CreateConversationRequest::CONTACT => $contact
+        ]))->assertStatus(200);
     }
 
     /** @test */
@@ -43,11 +47,13 @@ class ConversationsTest extends TestCase
     {
         $this->withoutExceptionHandling();
         $this->be(factory(User::class)->create());
-        $contact = factory(User::class)->create()->id;
-        $text = factory(Message::class)->make()->text;
+        $contact = factory(User::class)->create()->{User::ID};
+        $text = factory(Message::class)->make()->{Message::TEXT};
 
-        $response = $this->post(route('conversations.store'), compact('contact', 'text'))
-            ->assertStatus(201);
+        $response = $this->post(route('conversations.store'), compact(
+            CreateConversationRequest::CONTACT,
+            CreateConversationRequest::TEXT
+        ))->assertStatus(201);
 
         $this->assertContains($text, $response->json());
     }

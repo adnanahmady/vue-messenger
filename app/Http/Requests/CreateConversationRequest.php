@@ -6,6 +6,9 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateConversationRequest extends FormRequest
 {
+    public const CONTACT = 'contact';
+    public const TEXT = 'text';
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -24,8 +27,8 @@ class CreateConversationRequest extends FormRequest
     public function rules()
     {
         return [
-            'contact' => 'required|numeric|min:1',
-            'text' => 'required|string',
+            self::CONTACT => 'required|numeric|min:1',
+            self::TEXT => 'required|string',
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Contracts\UserInterface;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,9 +14,54 @@ use Illuminate\Support\Facades\DB;
  * Class User
  * @package App
  */
-class User extends Authenticatable
+class User extends Authenticatable implements UserInterface
 {
     use Notifiable;
+
+    /**
+     * @var "const" table name
+     */
+    public const TABLE = 'users';
+
+    /**
+     * @var "const" table primary key
+     */
+    public const ID = 'id';
+
+    /**
+     * @var "const" table column
+     */
+    public const NAME = 'name';
+
+    /**
+     * @var "const" table column
+     */
+    public const EMAIL = 'email';
+
+    /**
+     * @var "const" table column
+     */
+    public const PASSWORD = 'password';
+
+    /**
+     * @var "const" table column
+     */
+    public const REMEMBER_TOKEN = 'remember_token';
+
+    /**
+     * @var "const" table column
+     */
+    public const PHONE = 'phone';
+
+    /**
+     * @var "const" table column
+     */
+    public const PROFILE_IMAGE = 'profile_image';
+
+    /**
+     * @var "const" table column
+     */
+    public const EMAIL_VERIFIED_AT = 'email_verified_at';
 
     /**
      * The attributes that are mass assignable.
@@ -23,7 +69,9 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        self::NAME,
+        self::EMAIL,
+        self::PASSWORD,
     ];
 
     /**
@@ -32,7 +80,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        self::PASSWORD,
+        self::REMEMBER_TOKEN,
     ];
 
     /**
@@ -41,13 +90,13 @@ class User extends Authenticatable
      * @var array
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        self::EMAIL_VERIFIED_AT => 'datetime',
     ];
 
     /**
      * number of Messages that are send to user
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function receives(): HasMany
     {
@@ -57,7 +106,7 @@ class User extends Authenticatable
     /**
      * number of Messages that are user did send to other contacts
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function sends(): HasMany
     {
@@ -70,11 +119,11 @@ class User extends Authenticatable
      * @param Builder $builder Builder object.
      * @param int $id Specified id.
      *
-     * @return void
+     * @return Builder
      */
-    public function scopeWhereIdNot($builder, int $id)
+    public function scopeWhereIdNot(Builder $builder, int $id): Builder
     {
-        $builder->where('id', '!=', $id);
+        return $builder->where(self::ID, '!=', $id);
     }
 
     /**
@@ -83,11 +132,11 @@ class User extends Authenticatable
      * @param Builder $builder Builder object.
      * @param User $user User object.
      *
-     * @return void
+     * @return Builder
      */
-    public function scopeWithUnreadCount($builder, User $user): Builder
+    public function scopeWithUnreadCount(Builder $builder, User $user): Builder
     {
-        $builder->with(['sends' => function ($query) use ($user) {
+        return $builder->with(['sends' => function ($query) use ($user) {
             $raw = sprintf(
                 '"%1$s", "%1$s" AS %2$s, count("%1$s") AS %3$s',
                 Message::FROM,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\NewMessage;
 use App\Http\Requests\CreateConversationRequest;
 use App\Message;
+use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -28,9 +29,9 @@ class ConversationController extends Controller
      */
     public function index(Request $request, $contactId): JsonResponse
     {
-        Message::whereFrom($contactId)->whereTo($request->user()->id)->markAsRead(true);
+        Message::whereFrom($contactId)->whereTo($request->user()->{User::ID})->markAsRead(true);
 
-        $conversations = Message::GetConversation($request->user()->id, $contactId)->get();
+        $conversations = Message::GetConversation($request->user()->{User::ID}, $contactId)->get();
 
         return response()->json($conversations, 200);
     }
@@ -44,7 +45,11 @@ class ConversationController extends Controller
      */
     public function store(CreateConversationRequest $request): JsonResponse
     {
-        $message = Message::newMessage($request);
+        $message = Message::newMessage([
+            Message::FROM => $request->user()->{User::ID},
+            Message::TO => $request->{CreateConversationRequest::CONTACT},
+            Message::TEXT => $request->{CreateConversationRequest::TEXT},
+        ]);
 
         broadcast(new NewMessage($message));
 

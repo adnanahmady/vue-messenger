@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Contracts\MessageInterface;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,37 +13,47 @@ use Illuminate\Http\Request;
  * Model Message
  * @package App
  */
-class Message extends Model
+class Message extends Model implements MessageInterface
 {
     /**
-     * @var "const" table column
+     * @var "const" table name
      */
-    const FROM = 'from';
+    public const TABLE = 'messages';
+
+    /**
+     * @var "const" table primary key
+     */
+    public const ID = 'id';
 
     /**
      * @var "const" table column
      */
-    const TO = 'to';
+    public const FROM = 'from';
 
     /**
      * @var "const" table column
      */
-    const TEXT = 'text';
+    public const TO = 'to';
 
     /**
      * @var "const" table column
      */
-    const READ = 'read';
+    public const TEXT = 'text';
+
+    /**
+     * @var "const" table column
+     */
+    public const READ = 'read';
 
     /**
      * @var "const" query alias
      */
-    const UNREAD_MESSAGES_COUNT = 'unread_messages_count';
+    public const UNREAD_MESSAGES_COUNT = 'unread_messages_count';
 
     /**
      * @var "const" query alias
      */
-    const SENDER_ID = 'sender_id';
+    public const SENDER_ID = 'sender_id';
 
     /**
      * The attributes that are mass assignable.
@@ -59,16 +70,17 @@ class Message extends Model
     /**
      * Creates a new instance.
      *
-     * @param Request $request Request object.
+     * @param array $data Data.
      *
-     * @return Message
+     * @return MessageInterface
      */
-    public static function newMessage(Request $request): Message
+    public static function newMessage(array $data): MessageInterface
     {
         $message = new static;
-        $message->{Message::FROM} = $request->user()->id;
-        $message->{Message::TO} = $request->contact;
-        $message->{Message::TEXT} = $request->text;
+
+        foreach ($data as $key => $value) {
+            $message->{$key} = $value;
+        }
         $message->save();
 
         return $message;
@@ -77,36 +89,39 @@ class Message extends Model
     /**
      * returns the user who send's message
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
     public function fromContact(): HasOne
     {
-        return $this->hasOne(User::class, 'id', 'from');
+        return $this->hasOne(User::class, User::ID, self::FROM);
     }
 
     /**
      * returns the user who receive's message
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
     public function toContact(): HasOne
     {
-        return $this->hasOne(User::class, 'id', 'to');
+        return $this->hasOne(User::class, User::ID, self::TO);
     }
 
     /**
      * Marks message as read.
      *
-     * @param Builder $builder Builder.
      * @param bool $markAsRead Flag for define update read column.
      *
-     * @return void
+     * @return MessageInterface
      */
-    public function scopeMarkAsRead($builder, bool $markAsRead = true)
+    public function markAsRead(bool $markAsRead = true): MessageInterface
     {
         $action = $markAsRead ? 'whereNull' : 'whereNotNull';
 
-        $builder->$action(self::READ)->update([self::READ => $markAsRead ? Carbon::now() : null]);
+        $this->$action(self::READ)->update([
+            self::READ => $markAsRead ? Carbon::now() : null
+        ]);
+
+        return $this;
     }
 
     /**
@@ -117,11 +132,14 @@ class Message extends Model
      * @param int $userId User id.
      * @param int $contactId Contact id.
      *
-     * @return void
+     * @return Builder
      */
-    public function scopeGetConversation(Builder $builder, int $userId, int $contactId)
-    {
-        $builder->where(function ($query) use ($userId, $contactId) {
+    public function scopeGetConversation(
+        Builder $builder,
+        int $userId,
+        int $contactId
+    ): Builder {
+        return $builder->where(function ($query) use ($userId, $contactId) {
             $query->where(Message::FROM, $userId);
             $query->where(Message::TO, $contactId);
         })->orWhere(function ($query) use ($userId, $contactId) {

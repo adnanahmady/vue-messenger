@@ -14,7 +14,7 @@ class CreateMessagesTable extends Migration
      */
     public function up()
     {
-        Schema::create('messages', function (Blueprint $table) {
+        Schema::create(Message::TABLE, function (Blueprint $table) {
             $table->id();
             $table->integer(Message::FROM)->unsigned();
             $table->integer(Message::TO)->unsigned();
@@ -30,6 +30,6 @@ class CreateMessagesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('messages');
+        Schema::dropIfExists(Message::TABLE);
     }
 }

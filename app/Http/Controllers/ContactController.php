@@ -23,7 +23,8 @@ class ContactController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $contacts = User::withUnreadCount($user = $request->user())->whereIdNot($user->id)->get();
+        $contacts = User::withUnreadCount($user = $request->user())
+            ->whereIdNot($user->{User::ID})->get();
 
         return response()->json($contacts, 200);
     }

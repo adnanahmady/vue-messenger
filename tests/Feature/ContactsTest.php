@@ -32,20 +32,19 @@ class ContactsTest extends TestCase
         $usersCount = 4;
         $unreadCount = 2;
         $this->withoutExceptionHandling();
-        $this->be($user = factory(User::class)->create());
+        $this->be($from = factory(User::class)->create());
         $users = factory(User::class, $usersCount)->create();
-        $users->map(function ($u) use ($user, $unreadCount) {
+        $users->map(function ($user) use ($from, $unreadCount) {
             factory(Message::class, $unreadCount)->create([
-                Message::FROM => $u->id,
-                Message::TO => $user->id,
+                Message::FROM => $user->{User::ID},
+                Message::TO => $from->{User::ID},
             ]);
 
             factory(Message::class, 1)->state('read')->create([
-                Message::FROM => $u->id,
-                Message::TO => $user->id,
+                Message::FROM => $user->{User::ID},
+                Message::TO => $from->{User::ID},
             ]);
         });
-
         $response = $this->get(route('contacts'))->assertStatus(200);
 
         array_map(function ($user) use ($unreadCount) {
